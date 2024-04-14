@@ -77,6 +77,12 @@ def register_datasets_mixtures():
         data_path='./playground/data/vlm-flan-clean-text1m-nosqa-sharded'
     )
     add_dataset(vflan)
+    vflan_download = Dataset(
+        dataset_name='vflan_download',
+        dataset_type='vflan',
+        data_path='/home/ubuntu/dataset/aigc-vlm/vflan/new-vflan'
+    )
+    add_dataset(vflan_download)
     
     
     DATASETS_MIXTURES.update({'coyo_25m_wds': [coyo_25m_wds]})
@@ -88,3 +94,4 @@ def register_datasets_mixtures():
     DATASETS_MIXTURES.update({'coyo_25m_mmc4core': [coyo_25m, mmc4core]})
     DATASETS_MIXTURES.update({'vflan': [vflan]})
     DATASETS_MIXTURES.update({'vflan_sharegpt4v_sft': [vflan, sharegpt4v_sft]})
+    DATASETS_MIXTURES.update({'vflan_download': [vflan_download]})

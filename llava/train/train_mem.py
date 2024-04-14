@@ -27,6 +27,14 @@ def __len__(self):
 def __iter__(self):
     return self.batch_sampler.__iter__()
 
+import debugpy
+
+debugpy.listen(5888)  # 5678 is port
+print("Waiting for debugger attach")
+debugpy.wait_for_client()
+debugpy.breakpoint()
+print('break on this line')
+
 if __name__ == "__main__":
     with (
         mock.patch('transformers.image_processing_utils.normalize', new=patched_normalize),

@@ -10,20 +10,20 @@ echo "MASTER_ADDR="$MASTER_ADDR
 echo "JobID: $SLURM_JOB_ID | Full list: $worker_list"
 
 n_nodes=1
-bs=16
+bs=8
 # OUTPUT of stage 2 script
 STAGE2_PATH=$1
 # Final output checkpoint path
 OUTPUT=$2
 
 
-torchrun --nnodes=$n_node --nproc_per_node=8 --master_port=25001 \
+/home/ubuntu/pytorch_gpu_base_ubuntu_uw2_workplace/anaconda3/envs/vila/bin/torchrun --nnodes=$n_node --nproc_per_node=1 --master_port=25001 \
     --master_addr $MASTER_ADDR --node_rank=$CURRENT_RANK \
     llava/train/train_mem.py \
     --deepspeed ./scripts/zero3.json \
     --model_name_or_path $STAGE2_PATH \
     --version v1 \
-    --data_mixture vflan_sharegpt4v_sft \
+    --data_mixture vflan_download \
     --vflan_no_system_prompt True \
     --vision_tower openai/clip-vit-large-patch14-336 \
     --mm_projector_type mlp2x_gelu \

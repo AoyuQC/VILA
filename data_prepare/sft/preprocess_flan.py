@@ -6,8 +6,10 @@ import json
 from tqdm import tqdm
 
 # download OpenORCA/FLAN to the dataset_path directory
-dataset_path = "/dataset/llava-data/instruction-tuning/FLAN/"
-save_path = "/dataset/llava-data/instruction-tuning/new-vflan"
+# dataset_path = "/dataset/llava-data/instruction-tuning/FLAN/"
+dataset_path = "/home/ubuntu/dataset/aigc-vlm/vflan/FLAN/"
+# save_path = "/dataset/llava-data/instruction-tuning/new-vflan"
+save_path = "/home/ubuntu/dataset/aigc-vlm/vflan/new-vflan/"
 os.makedirs(save_path, exist_ok=True)
 dataset_files = sorted(os.listdir(dataset_path))
 
@@ -22,7 +24,7 @@ all_inputs = []
 all_targets = []
 
 # small scale experiment
-# filtered_folders = filtered_folders[:3]
+filtered_folders = filtered_folders[:3]
 
 for folder in tqdm(filtered_folders):
     parquet_files = sorted(os.listdir(folder))
