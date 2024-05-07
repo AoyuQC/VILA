@@ -150,14 +150,6 @@ def register_datasets_mixtures():
         data_path='./playground/data/vlm-flan-clean-text1m-nosqa-sharded'
     )
     add_dataset(vflan)
-<<<<<<< HEAD
-    vflan_download = Dataset(
-        dataset_name='vflan_download',
-        dataset_type='vflan',
-        data_path='/home/ubuntu/dataset/aigc-vlm/vflan/new-vflan'
-    )
-    add_dataset(vflan_download)
-=======
 
 
     scienceqa = Dataset(
@@ -168,7 +160,6 @@ def register_datasets_mixtures():
     )
     add_dataset(scienceqa)
 
->>>>>>> f85297fa156e85d95bab4b1c7c2f01283866e759
     
     sherlock = Dataset(
         dataset_name="sherlock",
@@ -200,18 +191,6 @@ def register_datasets_mixtures():
     )
     add_dataset(youcook2)
     
-<<<<<<< HEAD
-    DATASETS_MIXTURES.update({'coyo_25m_wds': [coyo_25m_wds]})
-    DATASETS_MIXTURES.update({'llava_1_5_mm_align': [llava_1_5_mm_align]})
-    DATASETS_MIXTURES.update({'llava_1_5_sft': [llava_1_5_sft]})
-    DATASETS_MIXTURES.update({'sharegpt4v_sft': [sharegpt4v_sft]})
-    DATASETS_MIXTURES.update({'coyo_25m': [coyo_25m]})
-    DATASETS_MIXTURES.update({'mmc4core': [mmc4core]})
-    DATASETS_MIXTURES.update({'coyo_25m_mmc4core': [coyo_25m, mmc4core]})
-    DATASETS_MIXTURES.update({'vflan': [vflan]})
-    DATASETS_MIXTURES.update({'vflan_sharegpt4v_sft': [vflan, sharegpt4v_sft]})
-    DATASETS_MIXTURES.update({'vflan_download': [vflan_download]})
-=======
     vatex = Dataset(
         dataset_name="vatex",
         dataset_type="torch",
@@ -248,4 +227,3 @@ def register_datasets_mixtures():
 
 
     
->>>>>>> f85297fa156e85d95bab4b1c7c2f01283866e759
