@@ -1068,6 +1068,187 @@ class LazyWDSDataset(Dataset):
 
         return data_dict
 
+class LazyLTCCDataset(Dataset):
+    """Dataset for supervised fine-tuning from flan mixture.
+    This class is implemented by Aoyu."""
+
+    def __init__(
+        self,
+        data_path: str,
+        image_folder: str,
+        tokenizer: transformers.PreTrainedTokenizer,
+        data_args: DataArguments,
+        training_args: TrainingArguments,
+    ):
+        super().__init__()
+        import pickle
+
+        self.list_data_dict = []
+
+        logging.warning("Loading data...")
+        pkl_list = os.listdir(data_path)
+        
+        self.sharded = False
+        # The original unsharded implementation loads the entire vflan dataset
+        # on each GPU. So 80x8=640G host memory per device.
+        # If we use the sharded implementation, only 80G per device.
+        for pkl in pkl_list:
+            if ".count" in pkl:
+                self.sharded = True
+                break
+        if not self.sharded:
+            for pkl in pkl_list:
+                if pkl.endswith(".pkl"):
+                    with open(os.path.join(data_path, pkl), "rb") as f:
+                        data = pickle.load(f)
+                        self.list_data_dict.extend(data)
+            self.n_samples = len(self.list_data_dict)
+            logging.warning(f"Loaded {len(self.list_data_dict)} samples...")
+        else:
+            # kentang-mit@: memory efficient loading of vflan via sharding.
+            n_samples = []
+            # actually shards and stats info
+            n_shards = len(os.listdir(data_path)) // 2
+            count_info_list = sorted(
+                [f for f in os.listdir(data_path) if f.endswith(".count")]
+            )[:n_shards]
+            n_samples = [
+                int(open(os.path.join(data_path, f), "r").read().strip())
+                for f in count_info_list
+            ]
+            self.n_samples = sum(n_samples)
+            print("total VFlan samples", sum(n_samples))  # 10,881,869
+
+            rank = training_args.process_index # int(os.environ["RANK"])
+            world_size = training_args.world_size # int(os.environ["WORLD_SIZE"])
+            shared_size = n_shards // world_size
+
+            gpu_samples = [
+                sum(n_samples[i * shared_size : (i + 1) * shared_size])
+                for i in range(world_size)
+            ]
+            self.n_samples = min(gpu_samples) * world_size  # total size
+            self.idx_offset = rank * min(gpu_samples)
+            shard_start, shard_end = rank * shared_size, (rank + 1) * shared_size
+            print(f" * loading data from shard {shard_start}-{shard_end}")
+
+            shard_names = [d.replace(".count", ".pkl") for d in count_info_list]
+            shard_names = shard_names[shard_start:shard_end]
+
+            full_data_list = []
+            # now load data
+            for shard_name in shard_names:
+                # load shard
+                with open(os.path.join(data_path, shard_name), "rb") as f:
+                    data_list = pickle.load(f)
+
+                full_data_list.extend(data_list)
+
+            print("* loaded totally {} samples".format(len(full_data_list)))
+
+            self.list_data_dict = full_data_list
+
+        self.tokenizer = tokenizer
+        self.data_args = data_args
+        self.image_folder = image_folder
+
+    def __len__(self):
+        return self.n_samples
+
+    def __getitem__(self, i) -> Dict[str, torch.Tensor]:
+        if not self.sharded:
+            data = self.list_data_dict[i]
+        else:
+            data = self.list_data_dict[i - self.idx_offset]
+        question = data["question"].rstrip()
+        answer = data["answer:" if "answer:" in data else "answer"].rstrip()
+        images = data["image:" if "image:" in data else "image"]
+
+        if isinstance(images, str):
+            images = [images]
+        assert len(images) <= 8, "Too many images in one sample {}".format(len(images))
+        if len(images) == 8:  # sample it to be 4
+            if hasattr(self.data_args, "downsample_video") and self.data_args.downsample_video:
+                images = images[::2]
+        n_images = len(images)
+
+        decode_images = []
+        for image_str in images:
+            if image_str.endswith(".jpg"):
+                decode_images.append(image_str)  # a path
+            else:  # jpeg bytes
+                rawbytes = base64.b64decode(image_str)
+                decode_images.append(Image.open(io.BytesIO(rawbytes)).convert("RGB"))
+        if n_images == 8:
+            resize = True
+        else:
+            resize = False
+        images = [
+            LazySupervisedDataset._process_image(img, self.data_args, resize=resize, image_folder=self.image_folder)
+            for img in decode_images
+        ]
+
+        # question_split = question.split("\nQuestion: ")[1:]
+        # qa_pairs = []
+        # for qa in question_split:
+        #     qa_pairs.append(qa.split("\nAnswer: "))
+
+        # qa_pairs[0][0] = "<image>\n" + qa_pairs[0][0]
+        # assert len(qa_pairs[-1]) == 1
+        # qa_pairs[-1][0] = qa_pairs[-1][0].replace("\n", "")
+        # qa_pairs[-1].append(answer)
+        # conversation = []
+
+        # cnt = 0
+        # for q, a in qa_pairs:
+        #     if cnt == 0:
+        #         q = "<image>\n" * n_images + q
+        #     conversation.append({"from": "human", "value": q})
+        #     conversation.append({"from": "gpt", "value": a})
+        
+        conversation = data["conversation"]
+
+        # the same size for all images, so we concat
+        if len(images) == 0:
+            assert not "<image>" in question
+        
+        # sources = replace_image_patch_tokens([conversation], self.multimodal_cfg)
+        sources = [conversation]
+
+        # NOTE: here we use the simple version without the system prompt
+        # if n_images == 8:
+        #     conv_version = "vicuna_v1_1"
+        # else:
+        #     conv_version = "vicuna_v1_1_nosys"
+
+        # kentang-mit@: the newest conversation template does not have system prompt.
+        if hasattr(self.data_args, "vflan_no_system_prompt"):
+            no_system_prompt = self.data_args.vflan_no_system_prompt
+        else:
+            no_system_prompt = False
+        data_dict = preprocess(
+            sources,
+            self.tokenizer,
+            has_image=len(images) > 0,
+            no_system_prompt=no_system_prompt,
+        )
+
+        if isinstance(i, int):
+            data_dict = dict(
+                input_ids=data_dict["input_ids"][0], labels=data_dict["labels"][0]
+            )
+
+        if len(images) > 0:
+            data_dict["image"] = torch.stack(images)
+        else:
+            # llava 1.5 way of handling text-only data
+            # crop_size = self.data_args.image_processor.crop_size
+            # data_dict['image'] = torch.zeros(3, crop_size['height'], crop_size['width'])
+            # data_dict['image'] = data_dict['image'].unsqueeze(0)
+            # vila way of handling text-only data
+            data_dict['image'] = None
+
+        return data_dict
 
 class LazyVFlanDataset(Dataset):
     """Dataset for supervised fine-tuning from flan mixture.
