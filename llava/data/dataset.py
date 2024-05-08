@@ -1414,18 +1414,18 @@ class LazyLTCCDataset(Dataset):
         n_images = len(images)
 
         decode_images = []
-        for image_str in images:
-            if image_str.endswith(".jpg"):
-                decode_images.append(image_str)  # a path
+        for image_str, image_path in images.items():
+            if image_path.endswith(".jpg"):
+                decode_images.append(image_path)  # a path
             else:  # jpeg bytes
-                rawbytes = base64.b64decode(image_str)
+                rawbytes = base64.b64decode(image_path)
                 decode_images.append(Image.open(io.BytesIO(rawbytes)).convert("RGB"))
         if n_images == 8:
             resize = True
         else:
             resize = False
         images = [
-            LazySupervisedDataset._process_image(img, self.data_args, resize=resize, image_folder=self.image_folder)
+            process_image(img, self.data_args, image_folder=self.image_folder)
             for img in decode_images
         ]
 
