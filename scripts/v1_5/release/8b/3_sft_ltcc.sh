@@ -10,7 +10,7 @@ echo "MASTER_ADDR="$MASTER_ADDR
 echo "JobID: $SLURM_JOB_ID | Full list: $worker_list"
 
 n_nodes=1
-bs=16
+bs=1
 # OUTPUT of stage 2 script
 # STAGE2_PATH=$1
 BASE_MODEL_PATH=$1
