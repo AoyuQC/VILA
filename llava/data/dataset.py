@@ -2228,6 +2228,8 @@ def build_datasets(
             dataset_cls = DummyDataset
             if hasattr(dataset, "image_path"):
                 image_folder = dataset.image_path
+        elif dataset_type == "ltcc":
+            dataset_cls = LazyLTCCDataset
         else:
             raise NotImplementedError(f"{dataset_type} is not supported.")
         data_args.meta_path = getattr(dataset, "meta_path", None)

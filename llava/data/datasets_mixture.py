@@ -223,6 +223,15 @@ def register_datasets_mixtures():
     )
     add_dataset(sharegpt_video)
 
+    # ltcc dataset
+    sharegpt_video = Dataset(
+        dataset_name="ltcc",
+        dataset_type="ltcc",
+        data_path = "/home/ubuntu/dataset/aigc-vlm/ltcc/pickle",
+        image_path="/home/ubuntu/dataset/aigc-vlm/ltcc/split_imgs_0505",
+    )
+    add_dataset(sharegpt_video)
+
 
 
 
