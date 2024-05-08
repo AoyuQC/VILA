@@ -17,8 +17,10 @@ BASE_MODEL_PATH=$1
 # Final output checkpoint path
 OUTPUT=$2
 
-
-/home/ubuntu/pytorch_gpu_base_ubuntu_uw2_workplace/anaconda3/envs/vila/bin/torchrun --nnodes=$n_node --nproc_per_node=1 --master_port=25001 \
+# # g5
+# /home/ubuntu/pytorch_gpu_base_ubuntu_uw2_workplace/anaconda3/envs/vila/bin/torchrun --nnodes=$n_node --nproc_per_node=1 --master_port=25001 \
+# a100
+/home/ec2-user/SageMaker/conda_env/vila/bin/torchrun --nnodes=$n_node --nproc_per_node=1 --master_port=25001 \
     --master_addr $MASTER_ADDR --node_rank=$CURRENT_RANK \
     llava/train/train_mem.py \
     --deepspeed ./scripts/zero3.json \

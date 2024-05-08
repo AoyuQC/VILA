@@ -15,9 +15,17 @@ from PIL import Image
 import numpy as np
 from tqdm import tqdm
 
-root_dir="/home/ubuntu/dataset/aigc-vlm/ltcc"
+# # g5
+# root_dir="/home/ubuntu/dataset/aigc-vlm/ltcc"
+# split_dir="split_imgs_0505"
+# concat_dir="concat_imgs_0505"
+# save_path = f"{root_dir}/pickle/"
+
+# a100
+root_dir="/home/ec2-user/SageMaker/data/dataset"
 split_dir="split_imgs_0505"
 concat_dir="concat_imgs_0505"
+save_path = f"{root_dir}/pickle/"
 
 # img_description = json.loads(open("/home/ec2-user/SageMaker/data/res_ltcc.json").read())
 img_description = json.loads(open(f"{root_dir}/res_ltcc.json").read())
@@ -319,7 +327,6 @@ for sample in res:
     )
     cnt += 1
 
-save_path = f"{root_dir}/pickle/"
 
 with open(os.path.join(save_path, "text_ltcc_50k_v1.pkl"), "wb") as f:
     pickle.dump(filtered_samples, f)
