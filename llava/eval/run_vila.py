@@ -18,6 +18,14 @@ from llava.mm_utils import (KeywordsStoppingCriteria, get_model_name_from_path,
 from llava.model.builder import load_pretrained_model
 from llava.utils import disable_torch_init
 
+import debugpy
+
+debugpy.listen(5888)  # 5678 is port
+print("Waiting for debugger attach")
+debugpy.wait_for_client()
+debugpy.breakpoint()
+print('break on this line')
+
 
 def image_parser(args):
     out = args.image_file.split(args.sep)
