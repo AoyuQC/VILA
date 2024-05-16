@@ -1,31 +1,37 @@
-try:
-    import debugpy
-
-    debugpy.listen(5888)  # 5678 is port
-    print("Waiting for debugger attach")
-    debugpy.wait_for_client()
-    debugpy.breakpoint()
-    print('break on this line')
-except:
-    print("non debug mode")
-
 import json
 import os
 from PIL import Image
 import numpy as np
 from tqdm import tqdm
+import torch
+import sys
 
-# g5
-root_dir="/home/ubuntu/dataset/aigc-vlm/ltcc"
-split_dir="split_imgs_0505"
-concat_dir="concat_imgs_0505"
-save_path = f"{root_dir}/pickle/"
+device_name = torch.cuda.get_device_name()
+if device_name == 'NVIDIA A10G':
+    # g5 instance
+    root_dir="/home/ubuntu/dataset/aigc-vlm/ltcc"
+    split_dir="split_imgs_0505"
+    concat_dir="concat_imgs_0505"
+    save_path = f"{root_dir}/pickle/"
+    try:
+        import debugpy
 
-# # a100
-# root_dir="/home/ec2-user/SageMaker/data/dataset"
-# split_dir="split_imgs_0505"
-# concat_dir="concat_imgs_0505"
-# save_path = f"{root_dir}/pickle/"
+        debugpy.listen(5889)  # 5678 is port
+        print("Waiting for debugger attach")
+        debugpy.wait_for_client()
+        debugpy.breakpoint()
+        print('break on this line')
+    except:
+        print("non debug mode")
+
+elif device_name == 'NVIDIA A100-SXM4-40GB':
+    # a100 instance
+    root_dir="/home/ec2-user/SageMaker/data/dataset"
+    split_dir="split_imgs_0505"
+    concat_dir="concat_imgs_0505"
+    save_path = f"{root_dir}/pickle/"
+else:
+    raise Exception("only for a10 and a100 instance")
 
 # img_description = json.loads(open("/home/ec2-user/SageMaker/data/res_ltcc.json").read())
 img_description = json.loads(open(f"{root_dir}/res_ltcc.json").read())
