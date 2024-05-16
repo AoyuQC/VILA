@@ -18,14 +18,27 @@ from llava.mm_utils import (KeywordsStoppingCriteria, get_model_name_from_path,
 from llava.model.builder import load_pretrained_model
 from llava.utils import disable_torch_init
 
-import debugpy
+import torch
+import sys
 
-debugpy.listen(5888)  # 5678 is port
-print("Waiting for debugger attach")
-debugpy.wait_for_client()
-debugpy.breakpoint()
-print('break on this line')
+device_name = torch.cuda.get_device_name()
+if device_name == 'NVIDIA A10G':
+    # g5 instance
+    try:
+        import debugpy
 
+        debugpy.listen(5888)  # 5678 is port
+        print("Waiting for debugger attach")
+        debugpy.wait_for_client()
+        debugpy.breakpoint()
+        print('break on this line')
+    except:
+        print("non debug mode")
+elif device_name == 'NVIDIA A100-SXM4-40GB':
+    # a100 instance
+    print("non debug mode")
+else:
+    raise Exception("only for a10 and a100 instance")
 
 def image_parser(args):
     out = args.image_file.split(args.sep)
