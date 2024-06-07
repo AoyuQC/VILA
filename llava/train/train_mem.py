@@ -14,16 +14,16 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # This file is modified from https://github.com/haotian-liu/LLaVA/
-try:
-    import debugpy
+# try:
+#     import debugpy
 
-    debugpy.listen(5888)  # 5678 is port
-    print("Waiting for debugger attach")
-    debugpy.wait_for_client()
-    debugpy.breakpoint()
-    print('break on this line')
-except:
-    print('none debug model')
+#     debugpy.listen(5888)  # 5678 is port
+#     print("Waiting for debugger attach")
+#     debugpy.wait_for_client()
+#     debugpy.breakpoint()
+#     print('break on this line')
+# except:
+#     print('none debug model')
     
 
 from unittest import mock

@@ -10,7 +10,7 @@ echo "MASTER_ADDR="$MASTER_ADDR
 echo "JobID: $SLURM_JOB_ID | Full list: $worker_list"
 
 n_nodes=1
-bs=1
+bs=16
 # OUTPUT of stage 2 script
 # STAGE2_PATH=$1
 BASE_MODEL_PATH=$1
@@ -43,7 +43,7 @@ if [[ "$gpu_info" == *"A100"* ]]; then
         --image_aspect_ratio resize \
         --bf16 True \
         --output_dir ./checkpoints/$OUTPUT \
-        --num_train_epochs 1 \
+        --num_train_epochs 5 \
         --per_device_train_batch_size $bs \
         --per_device_eval_batch_size 4 \
         --gradient_accumulation_steps 2 \
